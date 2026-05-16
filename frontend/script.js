@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://gudided-ai.vercel.app/api';
 let currentIntent = null;
 let conversationHistory = [];
 let currentCategory = null;
