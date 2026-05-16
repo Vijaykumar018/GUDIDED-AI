@@ -21,7 +21,8 @@ A professional, full-stack AI-powered assistant designed to support students, HR
 
 ## 👥 Team Collaboration
 This project is built by a team of 7 developers.
-- **Project Lead**: [Vijaykumar018](https://github.com/Vijaykumar018)
+- **Project Lead**: [Vijaykumar018](https://github.com/Vijaykumar018),[Akshata063](https://github.com/Akshata063),[GANYA130105](https://github.com/GANYA130105),[Harshitha-CSD](https://github.com/Harshitha-CSD),[siri016](https://github.com/siri016),[Suhasvicky](https://github.com/Suhasvicky),[surabhi135](https://github.com/surabhi135)
+
 
 ## 📦 Local Setup Instructions
 1. Clone the repository.
