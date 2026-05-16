@@ -1,21 +1,13 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import Groq from 'groq-sdk';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const Groq = require('groq-sdk');
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend')));
-
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
@@ -23,7 +15,7 @@ const groq = new Groq({
 
 const intents = {
   student: {
-    name: "Student Assistant",
+    name: "🎓 Student Assistant",
     dropdownOptions: [
       "Course Selection Advice",
       "Study Tips & Techniques",
@@ -32,10 +24,10 @@ const intents = {
       "Scholarship Information",
       "Time Management"
     ],
-    systemPrompt: "You are a professional student assistant. Provide practical, structured advice with specific details. Include relevant resource links when helpful (like study resources, scholarship websites, educational platforms)."
+    systemPrompt: "You are a professional student assistant. Provide practical, structured advice with specific details."
   },
   referrer: {
-    name: "Referrer Assistant",
+    name: "🤝 Referrer Assistant",
     dropdownOptions: [
       "Referral Program Details",
       "Commission Structure",
@@ -44,10 +36,10 @@ const intents = {
       "Payment Process",
       "Best Practices"
     ],
-    systemPrompt: "You are a professional referral program assistant. Provide structured, actionable guidance with specific details. Include links to referral program examples or tracking tools when relevant."
+    systemPrompt: "You are a professional referral program assistant. Provide structured, actionable guidance."
   },
   hr: {
-    name: "HR Assistant",
+    name: "💼 HR Assistant",
     dropdownOptions: [
       "Recruitment Process",
       "Employee Onboarding",
@@ -56,10 +48,10 @@ const intents = {
       "Training Programs",
       "Employee Relations"
     ],
-    systemPrompt: "You are a professional HR assistant. Provide structured, compliant HR guidance with specific details. Include links to HR resources, policy templates, or legal guidelines when helpful."
+    systemPrompt: "You are a professional HR assistant. Provide structured, compliant HR guidance."
   },
   college: {
-    name: "College Administration",
+    name: "🏛️ College Administration",
     dropdownOptions: [
       "Admission Process",
       "Fee Structure",
@@ -68,7 +60,7 @@ const intents = {
       "Campus Facilities",
       "Placement Support"
     ],
-    systemPrompt: "You are a professional college administrator. Provide structured, accurate information with specific details. Include links to official college websites, scholarship portals, or application forms when relevant."
+    systemPrompt: "You are a professional college administrator. Provide structured, accurate information."
   }
 };
 
@@ -81,7 +73,6 @@ app.get('/api/intents', (req, res) => {
   res.json(intentsList);
 });
 
-// Generate follow-up questions
 app.post('/api/followup', async (req, res) => {
   try {
     const { intent, category, lastQuestion, lastAnswer } = req.body;
@@ -99,7 +90,7 @@ Return ONLY as a JSON array of strings.`;
         { role: "user", content: prompt }
       ],
       model: "llama-3.1-8b-instant",
-      temperature: 0.9,
+      temperature: 0.7,
       max_tokens: 300,
     });
     
@@ -108,7 +99,6 @@ Return ONLY as a JSON array of strings.`;
       let responseText = completion.choices[0]?.message?.content || '[]';
       responseText = responseText.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
       followupQuestions = JSON.parse(responseText);
-      if (!Array.isArray(followupQuestions)) followupQuestions = [];
     } catch (e) {
       followupQuestions = [
         "Can you explain this in more detail?",
@@ -120,14 +110,7 @@ Return ONLY as a JSON array of strings.`;
     
     res.json({ followup: followupQuestions.slice(0, 4) });
   } catch (error) {
-    res.json({ 
-      followup: [
-        "Can you provide more details?",
-        "What are the next steps?",
-        "Any tips you can share?",
-        "Can you explain with examples?"
-      ]
-    });
+    res.json({ followup: ["Tell me more", "Explain details", "Give examples", "Any tips?"] });
   }
 });
 
@@ -155,18 +138,26 @@ app.post('/api/chat', async (req, res) => {
     
     const structuredPrompt = `${intentConfig.systemPrompt} 
 
-IMPORTANT: Your response will be rendered in a professional "Workspace" view.
-Use Markdown extensively:
-- Use # for the main title (e.g., # Student Study Plan)
-- Use tables for structured data like Fees, Schedules, or Comparison lists.
-- Use **INR (₹)** for all fees and monetary values (DO NOT use dollars $).
-- Use **Bold** for emphasis.
-- Use lists for steps.
-- Include HELPFUL LINKS.
+Provide a DETAILED, SPECIFIC answer with concrete information.
+
+FORMAT:
+📌 Overview
+[2-3 sentences introducing the topic]
+
+🔹 Key Points
+• Specific point 1 with details
+• Specific point 2 with details
+• Specific point 3 with details
+
+📋 Important Details
+• Include specific numbers, dates, requirements
+
+✅ Summary
+[Brief conclusion]
 
 Topic: ${category}`;
     
-    const userMsg = userQuestion || `Please provide detailed information about ${category}. Include specific details and helpful links if available.`;
+    const userMsg = userQuestion || `Please provide detailed information about ${category}. Include specific numbers, dates, and requirements.`;
     
     const messages = [
       { role: "system", content: structuredPrompt },
@@ -202,16 +193,7 @@ Topic: ${category}`;
   }
 });
 
-// Serve the frontend index.html for any other routes (Vercel Fix)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
-
 const PORT = process.env.PORT || 3000;
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-  });
-}
-
-export default app;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
